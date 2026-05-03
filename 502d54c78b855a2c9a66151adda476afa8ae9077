@@ -1,0 +1,24 @@
+README.md
+  629f16c20be7a07f 1-361
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "502d54c78b855a2c9a66151adda476afa8ae9077",
+  "prompts": {
+    "629f16c20be7a07f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6494e63d-fe61-4fec-8e00-a36bec3177f1",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Yogananda.b",
+      "messages": [],
+      "total_additions": 361,
+      "total_deletions": 0,
+      "accepted_lines": 361,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/7b4569341630720f1ce88a925116b3bb4c71aaabeb6a1547ab4dcd1cd5520fd0"
+    }
+  }
+}
