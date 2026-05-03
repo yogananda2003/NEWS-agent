@@ -1,0 +1,70 @@
+{
+  "artificial-intelligence": {
+    "newsapi_query": "artificial intelligence OR machine learning OR LLM OR ChatGPT OR OpenAI OR Anthropic",
+    "rss_feeds": [
+      "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "https://venturebeat.com/category/ai/feed/",
+      "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+    ]
+  },
+  "developer-tools": {
+    "newsapi_query": "developer tools OR open source OR GitHub OR programming language OR framework",
+    "rss_feeds": [
+      "https://github.blog/feed/",
+      "https://stackoverflow.blog/feed/"
+    ]
+  },
+  "startups-funding": {
+    "newsapi_query": "startup funding OR venture capital OR series A OR series B OR IPO",
+    "rss_feeds": [
+      "https://techcrunch.com/category/startups/feed/",
+      "https://news.crunchbase.com/feed/"
+    ]
+  },
+  "big-tech": {
+    "newsapi_query": "Google OR Meta OR Apple OR Microsoft OR Amazon AWS announcement",
+    "rss_feeds": [
+      "https://techcrunch.com/feed/"
+    ]
+  },
+  "finance": {
+    "newsapi_query": "stock market OR earnings OR interest rates OR inflation OR Federal Reserve",
+    "rss_feeds": [
+      "https://feeds.reuters.com/reuters/businessNews",
+      "https://www.ft.com/rss/home"
+    ]
+  },
+  "healthcare": {
+    "newsapi_query": "FDA approval OR clinical trial OR drug approval OR medical research OR pharma",
+    "rss_feeds": [
+      "https://www.statnews.com/feed/",
+      "https://www.fiercehealthcare.com/rss/xml"
+    ]
+  },
+  "legal": {
+    "newsapi_query": "supreme court OR legislation OR regulation OR compliance OR court ruling",
+    "rss_feeds": [
+      "https://feeds.reuters.com/reuters/legalNews"
+    ]
+  },
+  "marketing": {
+    "newsapi_query": "digital marketing OR advertising OR brand strategy OR social media marketing",
+    "rss_feeds": [
+      "https://feeds.marketingweek.com/marketingweek/home",
+      "https://adage.com/rss.xml"
+    ]
+  },
+  "real-estate": {
+    "newsapi_query": "housing market OR mortgage rates OR real estate OR property prices",
+    "rss_feeds": [
+      "https://www.housingwire.com/feed/"
+    ]
+  },
+  "cybersecurity": {
+    "newsapi_query": "cybersecurity OR data breach OR ransomware OR vulnerability OR hacking",
+    "rss_feeds": [
+      "https://feeds.feedburner.com/TheHackersNews",
+      "https://krebsonsecurity.com/feed/"
+    ]
+  }
+}

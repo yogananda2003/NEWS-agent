@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: news-briefing-agent
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app --workers 2 --timeout 120
+    envVars:
+      - key: XAI_API_KEY
+        sync: false
+      - key: NEWSAPI_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        sync: false
