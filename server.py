@@ -34,7 +34,6 @@ def webhook():
 
     user = get_user(from_number)
 
-    # Save WhatsApp display name on first contact
     if profile_name and (not user or not user.get("name")):
         upsert_user(from_number, name=profile_name)
         user = get_user(from_number)
@@ -74,44 +73,10 @@ def _scheduler_loop():
         time.sleep(30)
 
 
-def _start_tunnel():
-    try:
-        from pyngrok import ngrok, conf
-        from utils.ssl_helper import get_ca_bundle
-        import os
-
-        # Point pyngrok's requests at the correct CA bundle
-        os.environ["REQUESTS_CA_BUNDLE"] = get_ca_bundle()
-
-        authtoken = os.getenv("NGROK_AUTHTOKEN", "")
-        if authtoken:
-            conf.get_default().auth_token = authtoken
-
-        tunnel = ngrok.connect(5000, "http")
-        public_url = tunnel.public_url.replace("http://", "https://")
-        print()
-        print("  PUBLIC TUNNEL ACTIVE")
-        print(f"  Webhook URL → {public_url}/webhook")
-        print()
-        print("  Paste that URL into Twilio:")
-        print("  twilio.com/console → Messaging → WhatsApp Sandbox")
-        print("  → 'When a message comes in' field")
-        print("=" * 55)
-        return public_url
-    except Exception as e:
-        print(f"  Tunnel failed: {e}")
-        print("  Run manually: ssh -R 80:localhost:5000 localhost.run")
-        print("=" * 55)
-        return None
-
+# Called at import time so gunicorn (which skips __main__) still initializes everything
+init_db()
+threading.Thread(target=_scheduler_loop, daemon=True).start()
+print("DB initialized. Scheduler started.")
 
 if __name__ == "__main__":
-    init_db()
-    print("=" * 55)
-    print("  News Briefing Agent — Phase 2 (Multi-User)")
-    print("=" * 55)
-
-    _start_tunnel()
-
-    threading.Thread(target=_scheduler_loop, daemon=True).start()
     app.run(host="0.0.0.0", port=5000, debug=False)
