@@ -71,12 +71,12 @@ This agent solves all of that in a 3-minute daily WhatsApp message.
                       ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   NEWS FETCHER                          │
-│   Pulls from RSS feeds + NewsAPI + GNews API            │
+│   Pulls from RSS feeds + NewsAPI                        │
 │   Time window: last 24 hours only                       │
 └──────────┬──────────────────────────┬───────────────────┘
            │                          │
            ▼                          ▼
-    RSS Feed Parser            NewsAPI / GNews
+    RSS Feed Parser              NewsAPI
     (domain-specific           (keyword + category
      curated feeds)             based queries)
            │                          │
@@ -90,7 +90,7 @@ This agent solves all of that in a 3-minute daily WhatsApp message.
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│              CLAUDE — FILTER & RANK                     │
+│              GROK (xAI) — FILTER & RANK                 │
 │   Removes: clickbait, sponsored, opinion, off-topic     │
 │   Ranks: Breaking / Major / Moderate / Quick Hit        │
 │   Selects top 8-12 stories for the briefing             │
@@ -98,7 +98,7 @@ This agent solves all of that in a 3-minute daily WhatsApp message.
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│             CLAUDE — SUMMARIZE & CONTEXTUALIZE          │
+│          GROK (xAI) — SUMMARIZE & CONTEXTUALIZE         │
 │   Writes 2-line summary per story                       │
 │   Adds "Why it matters to you" based on user profile    │
 │   Groups into sections: Top Stories + Quick Hits        │
@@ -108,9 +108,30 @@ This agent solves all of that in a 3-minute daily WhatsApp message.
 ┌─────────────────────────────────────────────────────────┐
 │              WHATSAPP DELIVERY ENGINE                   │
 │   Formats message for WhatsApp (text + emoji sections)  │
-│   Sends via WhatsApp Business API (Twilio / Meta)       │
+│   Sends via Twilio WhatsApp Sandbox API                 │
 │   Delivery confirmation + retry on failure              │
 └─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## AI Model Decision
+
+> **Originally planned:** Anthropic Claude API (`claude-sonnet-4-6`)
+>
+> **Switched to:** xAI Grok API (`grok-3`)
+>
+> **Reason:** Grok offers a free tier with no upfront billing required, making it easier to get started without adding a credit card or purchasing credits. The Grok API is fully OpenAI-compatible, so the switch required minimal code changes — just swapping the client and model name. Performance for filtering and summarization tasks is comparable.
+
+The Grok API is accessed via the OpenAI Python SDK with a custom `base_url`:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("XAI_API_KEY"),
+    base_url="https://api.x.ai/v1"
+)
 ```
 
 ---
@@ -119,28 +140,28 @@ This agent solves all of that in a 3-minute daily WhatsApp message.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━
-📰 YOUR AI BRIEFING
-📅 Friday, May 2, 2026
-⏱ 3 min read · 9 stories
+📰 YOUR DAILY BRIEFING
+📅 Saturday, May 3, 2026
+⏱ ~3 min read · 9 stories
 ━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔴 BREAKING
 1. *OpenAI releases GPT-5 with 2M token context*
-   Launched publicly today with multimodal reasoning and a 2M context window — largest ever in a commercial model.
-   💼 For you: Direct competition to tools you use. Test it this week before clients ask you about it.
+   Launched publicly today with multimodal reasoning and a 2M context window.
+   💼 Direct competition to tools you use. Test it before clients ask.
    🔗 Read more
 
 ━━━━━━━━━━━━━━━━━━━━━━
 
 🟠 MAJOR
 2. *Mistral raises $600M Series C at $6B valuation*
-   French AI startup secures funding led by a16z. Plans to release open-weight frontier model by Q3.
-   💼 For you: A stronger open-source competitor to GPT-4o — worth watching for cost-efficient deployments.
+   French AI startup secures funding led by a16z. Plans open-weight frontier model by Q3.
+   💼 Stronger open-source alternative for cost-efficient deployments.
    🔗 Read more
 
 3. *EU AI Act enforcement begins for high-risk systems*
-   Regulators begin auditing AI products in healthcare, hiring, and credit scoring under the new EU AI Act.
-   💼 For you: If you build or advise on AI products in Europe, compliance deadlines are now active.
+   Regulators begin auditing AI products in healthcare, hiring, and credit scoring.
+   💼 If you build AI products for Europe, compliance deadlines are now active.
    🔗 Read more
 
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -157,13 +178,11 @@ This agent solves all of that in a 3-minute daily WhatsApp message.
 ⚡ QUICK HITS
 • Meta open-sources new vision-language model (VLM-2)
 • Python 3.14 released with performance improvements
-• Anthropic raises Claude API rate limits for free tier
 • GitHub Copilot adds voice coding in VS Code
 
 ━━━━━━━━━━━━━━━━━━━━━━
-💬 Reply *more* for any story number
-📌 Reply *stop* to pause briefings
-⚙️ Reply *settings* to change domain/time
+💬 Reply *more [#]* for full story
+⚙️ Reply *stop* to pause | *now* for instant briefing
 ━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -172,43 +191,57 @@ This agent solves all of that in a 3-minute daily WhatsApp message.
 ## User Onboarding Flow (WhatsApp Conversation)
 
 ```
-Agent:  Hi! I'm your personal news briefing agent.
-        I'll send you a daily digest of everything 
-        important in your professional domain.
-        
+Agent:  Welcome! I'm your personal news briefing agent.
+        Every morning I'll send you a short, crisp summary
+        of everything important in your domain — right here
+        on WhatsApp. Let's set you up in 4 quick steps.
+
         What is your profession?
 
-User:   I'm a software engineer focused on AI
+User:   AI Engineer
 
-Agent:  Got it. Which topics should I cover?
-        Reply with numbers (you can pick multiple):
-        
+Agent:  Which topics should I cover?
+        Reply with numbers separated by commas:
+
         1. Artificial Intelligence & ML
-        2. Developer Tools & Open Source  
-        3. Cloud & Infrastructure
-        4. Cybersecurity
-        5. Startups & Funding
-        6. Big Tech (Google, Meta, OpenAI, etc.)
-        7. Programming Languages & Frameworks
+        2. Developer Tools & Open Source
+        3. Startups & Funding
+        4. Big Tech (Google, Meta, Apple, etc.)
+        5. Finance & Markets
+        6. Healthcare & Pharma
+        7. Legal & Compliance
+        8. Marketing & Advertising
+        9. Real Estate
+        10. Cybersecurity
 
-User:   1, 2, 5, 6
+        Example: 1,2,5
 
-Agent:  Perfect. What time should I send your briefing?
-        (Reply in your local time, e.g. "7am" or "8:30am")
+User:   1, 2, 4
 
-User:   7:30am
+Agent:  Got it! Covering: AI & ML, Developer Tools, Big Tech.
+        What time should I send your daily briefing?
+        Reply in 24hr format (e.g. 07:30 or 08:00)
 
-Agent:  Last question — your timezone?
+User:   07:30
 
-User:   IST
+Agent:  Briefing set for 07:30.
+        What is your timezone?
 
-Agent:  All set! Your first briefing arrives tomorrow 
-        at 7:30 AM IST. 
-        
-        You can reply anytime:
-        *more [number]* → deep dive on a story
-        *stop*          → pause briefings
-        *settings*      → update preferences
+        1. India (IST, UTC+5:30)
+        2. US East (EST, UTC-5)
+        ... (8 options)
+
+User:   1
+
+Agent:  All set! Here's your profile:
+        Profession: AI Engineer
+        Topics: AI & ML, Developer Tools, Big Tech
+        Delivery: 07:30 IST
+
+        Anytime you can reply:
+        *now* - get briefing immediately
+        *stop* - pause briefings
+        *settings* - view your profile
 ```
 
 ---
@@ -217,14 +250,12 @@ Agent:  All set! Your first briefing arrives tomorrow
 
 | User Reply | Agent Action |
 |---|---|
-| `more 3` | Fetches and sends full article summary for story #3 |
-| `stop` | Pauses daily briefings (can resume anytime) |
+| `more 3` | Sends full details for story #3 from last briefing |
+| `stop` | Pauses daily briefings |
 | `resume` | Restarts daily briefings |
-| `settings` | Shows current domain, time, timezone — allows editing |
-| `weekly` | Sends a summary of the week's top stories |
+| `settings` | Shows current profile (profession, domains, time, timezone) |
 | `now` | Triggers an on-demand briefing immediately |
-| `add topic [topic]` | Adds a new topic to the user's profile |
-| `remove topic [topic]` | Removes a topic from the user's profile |
+| `restart` | Restarts onboarding to change all settings |
 
 ---
 
@@ -232,148 +263,145 @@ Agent:  All set! Your first briefing arrives tomorrow
 
 ### AI / Tech
 - TechCrunch RSS
-- The Verge RSS
-- Wired RSS
-- ArXiv (cs.AI, cs.LG, cs.CL — research papers)
-- Hacker News Top Stories API
 - VentureBeat AI RSS
-- NewsAPI — query: `AI OR "machine learning" OR LLM`
+- The Verge RSS
+- NewsAPI — query: `artificial intelligence OR machine learning OR LLM OR ChatGPT OR OpenAI OR Anthropic`
+
+### Developer Tools
+- GitHub Blog RSS
+- Stack Overflow Blog RSS
+- NewsAPI — query: `developer tools OR open source OR GitHub OR programming language OR framework`
+
+### Startups & Funding
+- TechCrunch Startups RSS
+- Crunchbase News RSS
+- NewsAPI — query: `startup funding OR venture capital OR series A OR series B OR IPO`
+
+### Big Tech
+- TechCrunch RSS
+- NewsAPI — query: `Google OR Meta OR Apple OR Microsoft OR Amazon AWS announcement`
 
 ### Finance
 - Reuters Business RSS
-- Bloomberg Technology RSS
-- Financial Times RSS
-- NewsAPI — query: `stocks OR "interest rates" OR earnings OR "M&A"`
+- NewsAPI — query: `stock market OR earnings OR interest rates OR inflation OR Federal Reserve`
 
 ### Healthcare
 - STAT News RSS
 - Fierce Healthcare RSS
-- MedPage Today RSS
 - NewsAPI — query: `FDA OR "clinical trial" OR "drug approval" OR pharma`
 
 ### Legal
-- Law360 RSS
 - Reuters Legal RSS
-- Above the Law RSS
 - NewsAPI — query: `legislation OR "supreme court" OR regulation OR compliance`
 
 ### Marketing
 - Marketing Week RSS
 - AdAge RSS
-- Digiday RSS
 - NewsAPI — query: `"digital marketing" OR advertising OR "brand strategy"`
 
 ### Real Estate
 - HousingWire RSS
-- CoStar News RSS
-- Zillow Research Blog RSS
 - NewsAPI — query: `"housing market" OR "mortgage rates" OR "real estate"`
+
+### Cybersecurity
+- The Hacker News RSS
+- Krebs on Security RSS
+- NewsAPI — query: `cybersecurity OR data breach OR ransomware OR vulnerability`
 
 ---
 
 ## Data Models
 
-### User Profile
+### User Profile (SQLite)
 ```json
 {
   "user_id": "whatsapp:+91XXXXXXXXXX",
   "name": "Yogananda",
   "profession": "AI Engineer",
-  "domains": ["artificial-intelligence", "developer-tools", "startups", "big-tech"],
+  "domains": ["artificial-intelligence", "developer-tools", "big-tech"],
   "delivery_time": "07:30",
   "timezone": "Asia/Kolkata",
   "active": true,
-  "created_at": "2026-05-02T00:00:00Z",
-  "last_briefing_sent": "2026-05-02T07:30:00Z"
+  "onboarding_step": "COMPLETE",
+  "last_briefed_date": "2026-05-03",
+  "created_at": "2026-05-03T00:00:00Z"
 }
 ```
 
-### Story Object
+### Story Object (in-memory)
 ```json
 {
-  "story_id": "uuid",
   "headline": "OpenAI releases GPT-5",
   "source": "TechCrunch",
   "url": "https://...",
-  "published_at": "2026-05-02T03:00:00Z",
-  "raw_content": "...",
-  "summary": "2-line Claude-generated summary",
+  "published_at": "2026-05-03T03:00:00Z",
+  "summary": "2-line Grok-generated summary",
   "why_it_matters": "Role-specific relevance line",
-  "importance": "BREAKING | MAJOR | MODERATE | QUICK_HIT",
-  "domains": ["artificial-intelligence", "big-tech"]
+  "importance": "BREAKING | MAJOR | MODERATE | QUICK_HIT"
 }
 ```
 
 ---
 
-## Claude Prompts
+## Grok Prompts
 
 ### Filter & Rank Prompt
 ```
-You are a professional news editor.
+You are a professional news editor with deep expertise across all industries.
+Your job is to filter and rank news stories for a specific professional.
+You always return valid JSON and nothing else.
 
 User profile:
 - Profession: {profession}
 - Domains: {domains}
 
-Below are {n} raw news headlines from the last 24 hours.
+1. Remove stories that are: clickbait, sponsored/PR, pure opinion, duplicates,
+   or unrelated to the user's domains.
+2. Rank each kept story by importance:
+   - BREAKING  → directly affects the user's work today
+   - MAJOR     → industry-wide shift, widely discussed
+   - MODERATE  → good to know, not urgent
+   - QUICK_HIT → minor update, one line is enough
+3. Keep at most 12 stories.
 
-Your tasks:
-1. Remove any story that is: clickbait, sponsored content, opinion/editorial, 
-   a duplicate, or irrelevant to the user's domains.
-2. Rank remaining stories by importance:
-   - BREAKING: Affects the user's work directly today
-   - MAJOR: Industry-wide shift, widely discussed
-   - MODERATE: Good to know, not urgent
-   - QUICK_HIT: Minor update, one line only
-3. Return top 8-12 stories maximum. No more.
-4. Output as JSON array with fields: headline, url, source, importance, domain_tags
-
-Headlines:
-{headlines_json}
+Return ONLY a valid JSON array:
+[{"id": <original_id>, "importance": "BREAKING|MAJOR|MODERATE|QUICK_HIT"}]
 ```
 
 ### Summarize & Contextualize Prompt
 ```
-You are a professional briefing writer. Be concise, clear, and direct.
+You are a professional news briefing writer.
+Be concise, factual, and direct. Write like you're texting a smart colleague.
+You always return valid JSON and nothing else.
 
 User profile:
 - Profession: {profession}
 - Domains: {domains}
 
-For each story below, write:
-1. summary: Exactly 2 sentences. What happened. Key facts only.
-2. why_it_matters: 1 sentence. How this directly affects someone with this profession.
+For each story write:
+1. "summary": Exactly 2 sentences. What happened. Key facts only. No jargon.
+2. "why_it_matters": 1 sentence. How this directly affects someone in this profession.
 
-Do not use jargon. Do not be vague. Do not repeat the headline.
-Write like you're texting a smart colleague.
-
-Stories:
-{filtered_stories_json}
+Return ONLY a valid JSON array:
+[{"id": <id>, "summary": "...", "why_it_matters": "..."}]
 ```
 
 ---
 
 ## WhatsApp Delivery
 
-### Option A — Twilio WhatsApp API (Recommended for Development)
-- Easy setup with Twilio Sandbox
-- Free for testing (up to 20 messages)
-- Production: requires WhatsApp Business approval
-- Cost: ~$0.005 per message
+### Twilio WhatsApp Sandbox (Development / Current)
+- Easy setup, free for testing
+- Requires users to join the sandbox once
+- Max message length: 1600 characters per message
+- Long briefings are split into multiple messages automatically
+- Cost: ~$0.005 per message in production
 
-### Option B — Meta WhatsApp Business API (Production)
+### Meta WhatsApp Business API (Production — Future)
 - Official Meta Cloud API
 - Requires Facebook Business verification
 - Free for first 1000 conversations/month
 - Best for scaling to many users
-
-### Message Constraints
-- Max message length: 4096 characters
-- Use `*bold*` for headlines
-- Use `_italic_` for source names
-- Keep Quick Hits section under 5 items to avoid truncation
-- Split into 2 messages if total length exceeds 3500 characters
 
 ---
 
@@ -381,16 +409,15 @@ Stories:
 
 | Key | Service | Purpose | Free Tier |
 |---|---|---|---|
-| `ANTHROPIC_API_KEY` | Anthropic | AI filtering + summarization | $5 credit |
+| `XAI_API_KEY` | xAI (Grok) | AI filtering + summarization | Free tier available |
 | `NEWSAPI_KEY` | newsapi.org | Fetch domain news | 100 req/day |
-| `GNEWS_API_KEY` | gnews.io | Additional news source | 100 req/day |
 | `TWILIO_ACCOUNT_SID` | Twilio | WhatsApp delivery | Sandbox free |
 | `TWILIO_AUTH_TOKEN` | Twilio | WhatsApp delivery | Sandbox free |
 | `TWILIO_WHATSAPP_FROM` | Twilio | Sender number | Sandbox free |
 
 ### Minimum to Launch
 ```
-ANTHROPIC_API_KEY
+XAI_API_KEY
 NEWSAPI_KEY
 TWILIO_ACCOUNT_SID
 TWILIO_AUTH_TOKEN
@@ -402,24 +429,16 @@ TWILIO_WHATSAPP_FROM
 ## Environment Variables
 
 ```env
-# AI
-ANTHROPIC_API_KEY=sk-ant-...
+# xAI (Grok) — get from console.x.ai
+XAI_API_KEY=xai-...
 
 # News Sources
 NEWSAPI_KEY=...
-GNEWS_API_KEY=...
 
 # WhatsApp (Twilio)
 TWILIO_ACCOUNT_SID=AC...
 TWILIO_AUTH_TOKEN=...
 TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-
-# App Config
-DELIVERY_HOUR_DEFAULT=7
-DELIVERY_MINUTE_DEFAULT=0
-TIMEZONE_DEFAULT=UTC
-MAX_STORIES=12
-MAX_QUICK_HITS=5
 ```
 
 ---
@@ -427,11 +446,15 @@ MAX_QUICK_HITS=5
 ## File Structure
 
 ```
-news-briefing-agent/
-├── main.py                  # Entry point, scheduler
+agent-2/
+├── main.py                  # Phase 1 entry point (single user, --now flag)
+├── server.py                # Phase 2 entry point (Flask webhook + scheduler)
+├── briefing.py              # Shared run_briefing() logic + story cache
 ├── spec.md                  # This document
-├── .env                     # API keys (not committed)
+├── render.yaml              # Render.com deployment config
 ├── requirements.txt
+├── .env                     # API keys (not committed)
+├── .gitignore
 │
 ├── fetcher/
 │   ├── rss_fetcher.py       # Pulls from RSS feeds
@@ -439,42 +462,68 @@ news-briefing-agent/
 │   └── deduplicator.py      # Removes duplicate stories
 │
 ├── processor/
-│   ├── filter_agent.py      # Claude: filter + rank stories
-│   └── summarizer.py        # Claude: summarize + contextualize
+│   ├── filter_agent.py      # Grok: filter + rank stories
+│   └── summarizer.py        # Grok: summarize + contextualize
 │
 ├── delivery/
 │   ├── whatsapp.py          # Twilio WhatsApp sender
 │   └── formatter.py         # Formats message for WhatsApp
 │
 ├── onboarding/
-│   └── flow.py              # User setup conversation flow
+│   └── flow.py              # 5-step WhatsApp conversation state machine
 │
 ├── commands/
-│   └── handler.py           # Handles: more, stop, settings, now, etc.
+│   └── handler.py           # Handles: more N, stop, resume, settings, now, restart
 │
 ├── storage/
-│   ├── users.json           # User profiles (use SQLite in production)
-│   └── db.py                # Read/write user profiles
+│   ├── db.py                # SQLite operations (multi-user)
+│   └── users.json           # Phase 1 single-user profile
 │
-└── sources/
-    └── domain_sources.json  # RSS feeds + NewsAPI queries per domain
+├── sources/
+│   └── domain_sources.json  # RSS feeds + NewsAPI queries per domain
+│
+└── utils/
+    └── ssl_helper.py        # Corporate proxy CA bundle fallback
 ```
+
+---
+
+## Deployment
+
+### Local (Phase 1 — Single User)
+```bash
+python main.py --now        # run immediately
+python main.py              # run on schedule (reads delivery_time from users.json)
+```
+
+### Cloud (Phase 2 — Multi-User)
+Deployed on **Render.com** free tier.
+
+```
+URL: https://news-agent-g8ws.onrender.com
+Webhook: https://news-agent-g8ws.onrender.com/webhook
+Start command: gunicorn server:app --workers 2 --timeout 120
+```
+
+Render auto-deploys on every push to the `master` branch of:
+`https://github.com/yogananda2003/NEWS-agent`
 
 ---
 
 ## Scheduler Logic
 
 ```python
-# Runs every minute, checks if any user is due for a briefing
+# Runs every minute inside a background thread
+# Checks if any active user's delivery time matches current time
 
 for user in get_all_active_users():
-    user_now = current_time_in_timezone(user.timezone)
-    
-    if user_now.hour == user.delivery_hour \
-       and user_now.minute == user.delivery_minute \
-       and not already_sent_today(user.user_id):
-        
-        trigger_briefing(user)
+    if already_briefed_today(user):
+        continue
+    tz = pytz.timezone(user["timezone"])
+    now = datetime.now(tz)
+    h, m = map(int, user["delivery_time"].split(":"))
+    if now.hour == h and now.minute == m:
+        threading.Thread(target=run_briefing, args=(user,)).start()
 ```
 
 ---
@@ -483,35 +532,38 @@ for user in get_all_active_users():
 
 | Scenario | Handling |
 |---|---|
-| NewsAPI rate limit hit | Fall back to RSS feeds only |
-| Claude API timeout | Retry once, then send raw headlines |
-| WhatsApp delivery failure | Retry after 5 minutes, max 3 attempts |
-| No news found for domain | Send message: "Nothing major in your domain today" |
-| User sends unknown command | Reply with command list |
+| NewsAPI rate limit hit | Falls back to RSS feeds only |
+| Grok API error | Falls back to returning raw headlines without summaries |
+| WhatsApp delivery failure (1600 char limit) | Automatically splits into multiple messages |
+| No news found for domain | Sends "Nothing major today" message |
+| User sends unknown command | Replies with full command list |
+| New user messages bot | Starts onboarding flow automatically |
 
 ---
 
 ## Phases
 
-### Phase 1 — Core (Build First)
-- [ ] NewsAPI + RSS fetcher
-- [ ] Claude filter + summarize pipeline
-- [ ] WhatsApp delivery via Twilio
-- [ ] Hardcoded user profile (single user)
-- [ ] Daily scheduler (cron job)
+### Phase 1 — Core ✅ COMPLETE
+- [x] RSS + NewsAPI fetcher
+- [x] Grok filter + summarize pipeline
+- [x] WhatsApp delivery via Twilio
+- [x] Single user hardcoded profile
+- [x] Daily scheduler
 
-### Phase 2 — Multi-User + Onboarding
-- [ ] WhatsApp onboarding conversation flow
-- [ ] User profile storage (SQLite)
-- [ ] Per-user domain + time + timezone settings
-- [ ] Interactive commands (more, stop, settings)
+### Phase 2 — Multi-User + Onboarding ✅ COMPLETE
+- [x] WhatsApp onboarding conversation flow (4-step)
+- [x] SQLite multi-user storage
+- [x] Per-user domain + time + timezone settings
+- [x] Interactive commands (more N, stop, resume, settings, now, restart)
+- [x] Flask webhook server deployed on Render.com
+- [x] Auto-deploy via GitHub
 
-### Phase 3 — Polish
-- [ ] Weekly digest mode
-- [ ] On-demand briefing (`now` command)
-- [ ] Multiple domain support per user
-- [ ] More news sources (GNews, Reddit, HackerNews)
+### Phase 3 — Polish (Upcoming)
+- [ ] Weekly digest mode (`weekly` command)
+- [ ] More news sources (Reddit, HackerNews, GNews)
 - [ ] Fake/sponsored content detection
+- [ ] Swap SQLite for PostgreSQL (persistent across deploys)
+- [ ] Meta WhatsApp Business API (for production scale)
 
 ---
 
@@ -527,13 +579,14 @@ for user in get_all_active_users():
 
 ## Constraints & Assumptions
 
-- v1 supports WhatsApp delivery only
-- News window is exactly 24 hours (not real-time)
-- Users must have WhatsApp and opt in
-- Twilio sandbox used for development; Meta Business API for production
-- Claude claude-sonnet-4-6 used for all AI processing
-- Storage is flat JSON in Phase 1, SQLite in Phase 2
+- WhatsApp delivery only (v1 + v2)
+- News window is exactly last 24 hours
+- Users must have WhatsApp and join the Twilio sandbox once
+- Free tier on Render may have ~50s cold start after inactivity
+- SQLite resets on Render redeploy — upgrade to PostgreSQL for persistence
+- Grok `grok-3` model used for all AI processing
 
 ---
 
-*Spec version: 1.0 — Created May 2, 2026*
+*Spec version: 2.0 — Updated May 3, 2026*
+*AI model changed from Anthropic Claude to xAI Grok (free tier)*
