@@ -1,0 +1,24 @@
+.gitignore
+  629f16c20be7a07f 1-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "32c5100d879b4b03c6a08ee513dd15f591a76895",
+  "prompts": {
+    "629f16c20be7a07f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6494e63d-fe61-4fec-8e00-a36bec3177f1",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Yogananda.b",
+      "messages": [],
+      "total_additions": 8,
+      "total_deletions": 0,
+      "accepted_lines": 8,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/eba6bc2c52f2bde64df106b419427e83fd0eec535c36055752c52d83b513ef2d"
+    }
+  }
+}
