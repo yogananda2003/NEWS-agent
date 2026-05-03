@@ -1,0 +1,24 @@
+server.py
+  629f16c20be7a07f 76-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "f50f52e4539b27b9686872b2b51b65360413be03",
+  "prompts": {
+    "629f16c20be7a07f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6494e63d-fe61-4fec-8e00-a36bec3177f1",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Yogananda.b",
+      "messages": [],
+      "total_additions": 14,
+      "total_deletions": 49,
+      "accepted_lines": 6,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/b950ae80e5ffa18e377ed307803c26037efb5f7f8c3d49e606589fa90bb104b1"
+    }
+  }
+}
